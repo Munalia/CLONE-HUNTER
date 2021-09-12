@@ -1,6 +1,6 @@
 {
   "name": "TelegramCloneBot",
-  "description": "Telegram CloneBot by @jagrit007",
+  "description": "Telegram CloneBot by Xcodershub",
   "logo": "https://i.imgur.com/ZLi4nDP.jpg",
   "keywords": [
     "telegram",
@@ -8,9 +8,9 @@
     "google drive",
     "clone bot"
   ],
-  "repository": "https://github.com/jagrit007/Telegram-CloneBot",
-  "website":   "https://github.com/jagrit007/Telegram-CloneBot",
-  "success_url": "https://t.me/scippletech",
+  "repository": "https://github.com/anime-republic/CLONE-HUNTER",
+  "website":   "https://github.com/anime-republic/CLONE-HUNTER",
+  "success_url": "https://t.me/xcodershub",
   "env": {
     "BOT_TOKEN": {
       "description": "Get this value from @BotFather on Telegram",
@@ -23,7 +23,7 @@
       "required": true
     },
     "OWNER_ID": {
-      "description": "Get this value by sending /id to @kelverbot on Telegram.",
+      "description": "Get this value by sending /id to @MissRose_bot on Telegram.",
       "value": "",
       "required": true
     },
@@ -39,7 +39,7 @@
     "IS_TEAM_DRIVE": {
       "description": "Does you 'GDRIVE_FOLDER_ID' lead to a Team Drive or Normal Google Drive Folder",
       "required": false,
-      "value": "False"
+      "value": "True"
     },
     "TOKEN_PICKLE_URL": {
       "description": "Only if you want to load your token.pickle externally from an Index Link. Fill this with the direct link of that file.",
@@ -53,7 +53,7 @@
     },
     "USE_SERVICE_ACCOUNTS": {
       "description": "If you are directly deploying from GitHub, set this to False. But if you later add Service Accounts, go to 'Config Vars' in app settings and set this to True.",
-      "value": "False",
+      "value": "True",
       "required": false
     }
   },
