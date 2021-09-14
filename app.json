@@ -28,8 +28,8 @@
       "required": true
     },
     "AUTHORISED_USERS" : {
-      "description": "List of user ids to allow bot access to. Note: Write within [] and seperate with ,",
-      "value": "[]",
+      "description": "List of user ids to allow bot access to. Note: seperate with ,",
+      "value": "",
       "required": false
     },
     "INDEX_URL": {
