@@ -32,15 +32,15 @@ pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
 python3 generate_drive_token.py
 ```
 # Running
-- To run this bot (locally) (suggested)
+## To run this bot (locally) (suggested)
 ```
 python3 -m bot
 ```
-- Deploying to Heroku (Optional) (Not Suitable for very big Clones!)
+## Deploying to Heroku (Optional) (Not Suitable for very big Clones!)
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://dashboard.heroku.com/new?template=https://github.com/anime-republic/CLONE-HUNTER)
 
-- Please know that after using this button, your work isn't done. You gotta [clone heroku app](https://devcenter.heroku.com/articles/git-clone-heroku-app) and add credentials.json and token.pickle (By now you would know how to make it.) and this is the perfect time to generate service accounts if you wish to use them. After it's all done, [Push changes to Heroku (Step1-2 only).](https://docs.railsbridge.org/intro-to-rails/deploying_to_heroku_again)
+### Please know that after using this button, your work isn't done.Either you must load token.pckle and account folder using URL or You gotta connect heroku app to your repo and add credentials.json and token.pickle and if you use Service accounts upload account folder to the repo and click on manual deploy.
 
 **Tip: Instead of using Termux or local machine, use [repl.it](https://repl.it/), atleast it won't throw any errors in installing Python requirements. From [repl.it](https://repl.it/) you could push to a private GitHub repo and attach that to Heroku.**
 
