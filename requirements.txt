@@ -7,7 +7,3 @@ tenacity>=6.0.0
 python-magic
 requests
 python-dotenv
-pytz
-psutil
-heroku3
-wget

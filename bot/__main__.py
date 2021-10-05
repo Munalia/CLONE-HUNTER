@@ -1,33 +1,15 @@
-import os
-import subprocess
-import time
-import importlib
-import subprocess
-
-from sys import executable
-
-from telegram import ParseMode, BotCommand
-from telegram.ext import CommandHandler, MessageHandler, Filters, run_async
-from telegram.error import TimedOut, BadRequest
-
-from bot.gDrive import GoogleDriveHelper
+from telegram.ext import CommandHandler, run_async
+from bot.gDrive import *
 from bot.fs_utils import get_readable_file_size
 from bot import *
 from bot.decorators import is_authorised, is_owner
 from telegram.error import TimedOut, BadRequest
 from bot.clone_status import CloneStatus
 from bot.msg_utils import deleteMessage, sendMessage
-from bot.modules import ALL_MODULES
-from bot import LOGGER, dispatcher, updater, bot
-
-
-for module in ALL_MODULES:
-    imported_module = importlib.import_module("bot.modules." + module)
-    importlib.reload(imported_module)CLONE_REGEX = r"https://drive\.google\.com/(drive)?/?u?/?\d?/?(mobile)?/?(file)?(folders)?/?d?/(?P<id>[-\w]+)[?+]?/?(w+)?"@run_async
+import time 
 
 @run_async
 def start(update, context):
-    LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
     sendMessage("Hello! Please send me a Google Drive Shareable Link to Clone to your Drive!" \
         "\nSend /help for checking all available commands.",
     context.bot, update, 'Markdown')
@@ -35,7 +17,6 @@ def start(update, context):
 
 @run_async
 def helper(update, context):
-    LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
     sendMessage("Here are the available commands of the bot\n\n" \
         "*Usage:* `/clone <link> [DESTINATION_ID]`\n*Example:* \n1. `/clone https://drive.google.com/drive/u/1/folders/0AO-ISIXXXXXXXXXXXX`\n2. `/clone 0AO-ISIXXXXXXXXXXXX`" \
             "\n*DESTIONATION_ID* is optional. It can be either link or ID to where you wish to store a particular clone." \
@@ -47,10 +28,9 @@ def helper(update, context):
 @run_async
 @is_authorised
 def cloneNode(update, context):
-    LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
     args = update.message.text.split(" ")
-    if len(args) >= 1:
-        link = args[0]
+    if len(args) > 1:
+        link = args[1]
         try:
             ignoreList = args[-1].split(',')
         except IndexError:
@@ -58,7 +38,7 @@ def cloneNode(update, context):
 
         DESTINATION_ID = GDRIVE_FOLDER_ID
         try:
-            DESTINATION_ID = args[1]
+            DESTINATION_ID = args[2]
             print(DESTINATION_ID)
         except IndexError:
             pass
@@ -71,15 +51,9 @@ def cloneNode(update, context):
         result = gd.clone(link, status_class, ignoreList=ignoreList)
         deleteMessage(context.bot, msg)
         status_class.set_status(True)
-        if update.message.from_user.username:
-            uname = f'@{update.message.from_user.username}'
-        else:
-            uname = f'<a href="tg://user?id={update.message.from_user.id}">{update.message.from_user.first_name}</a>'
-        if uname is not None:
-            cc = f'\n\n<b>Clone by: {uname} ID:</b> <code>{update.message.from_user.id}</code>'
-        sendMessage(result + cc, context.bot, update)
+        sendMessage(result, context.bot, update)
     else:
-        sendMessage("<b>Please Provide a Google Drive Shared Link to Clone.</b>", bot, update)
+        sendMessage("Please Provide a Google Drive Shared Link to Clone.", bot, update)
 
 
 @run_async
@@ -88,14 +62,7 @@ def sendCloneStatus(update, context, status, msg, link):
     while not status.done():
         sleeper(3)
         try:
-            if update.message.from_user.username:
-                uname = f'@{update.message.from_user.username}'
-            else:
-                uname = f'<a href="tg://user?id={update.message.from_user.id}">{update.message.from_user.first_name}</a>'
-            text=f'🔗 *Cloning:* [{status.MainFolderName}]({status.MainFolderLink})\n━━━━━━━━━━━━━━\n' \
-                 f'🗃️ *Current File:* `{status.get_name()}`\n📚 *Total File:* `{int(len(status.get_name()))}`\n' \
-                 f'⬆️ *Transferred*: `{status.get_size()}`\n📁 *Destination:* [{status.DestinationFolderName}]({status.DestinationFolderLink})\n\n' \
-                 f'*👤 Clone by: {uname} ID:* `{update.message.from_user.id}`'
+            text=f'📲 *Cloning:* [{status.MainFolderName}]({status.MainFolderLink})\n━━━━━━━━━━━━━━\n🗃️ *Current File:* `{status.get_name()}`\n⬆️ *Transferred*: `{status.get_size()}`\n📁 *Destination:* [{status.DestinationFolderName}]({status.DestinationFolderLink})'
             if status.checkFileStatus():
                 text += f"\n🕒 *Checking Existing Files:* `{str(status.checkFileStatus())}`"
             if not text == old_text:
@@ -114,30 +81,8 @@ def sleeper(value, enabled=True):
     return
 
 @run_async
-@is_authorised
-def countNode(update,context):
-    LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
-    args = update.message.text.split(" ",maxsplit=1)
-    if len(args) > 1:
-        link = args[1]
-        msg = sendMessage(f"Counting: <code>{link}</code>",context.bot,update)
-        gd = GoogleDriveHelper()
-        result = gd.count(link)
-        deleteMessage(context.bot,msg)
-        if update.message.from_user.username:
-            uname = f'@{update.message.from_user.username}'
-        else:
-            uname = f'<a href="tg://user?id={update.message.from_user.id}">{update.message.from_user.first_name}</a>'
-        if uname is not None:
-            cc = f'\n\n<b>Count by: {uname} ID:</b> <code>{update.message.from_user.id}</code>'
-        sendMessage(result + cc,context.bot,update)
-    else:
-        sendMessage("<b>Provide G-Drive Shareable Link to Count.</b>",context.bot,update)
-
-@run_async
 @is_owner
 def sendLogs(update, context):
-    LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
     with open('log.txt', 'rb') as f:
         bot.send_document(document=f, filename=f.name,
                         reply_to_message_id=update.message.message_id,
@@ -160,72 +105,6 @@ def deletefile(update, context):
 	LOGGER.info(f"DeleteFileCmd: {msg}")
 	reply_message = sendMessage(msg, context.bot, update)
 
-
-
-
-
-@run_async
-@is_owner
-def shell(update, context):
-    message = update.effective_message
-    cmd = message.text.split(' ', 1)
-    if len(cmd) == 1:
-        message.reply_text('No command to execute was given.')
-        return
-    cmd = cmd[1]
-    process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    stdout, stderr = process.communicate()
-    reply = ''
-    stderr = stderr.decode()
-    stdout = stdout.decode()
-    if stdout:
-        reply += f"*Stdout*\n`{stdout}`\n"
-        LOGGER.info(f"Shell - {cmd} - {stdout}")
-    if stderr:
-        reply += f"*Stderr*\n`{stderr}`\n"
-        LOGGER.error(f"Shell - {cmd} - {stderr}")
-    if len(reply) > 3000:
-        with open('shell_output.txt', 'w') as file:
-            file.write(reply)
-        with open('shell_output.txt', 'rb') as doc:
-            context.bot.send_document(
-                document=doc,
-                filename=doc.name,
-                reply_to_message_id=message.message_id,
-                chat_id=message.chat_id)
-    else:
-        message.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
-
-@run_async
-@is_owner
-def gitpull(update, context):
-    msg = update.effective_message.reply_text(
-        "Pulling all changes from remote and then attempting to restart.",
-    )
-    proc = subprocess.Popen("git pull", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    result = proc.communicate(GIT_PASS)
-
-    sent_msg = msg.text + "\n\nChanges pulled... I guess..."
-
-    for i in reversed(range(5)):
-        msg.edit_text(sent_msg + str(i + 1))
-        time.sleep(1)
-
-    if not result.stdout.read():
-        msg.edit_text(f'{result.stderr.read()}')
-       #msg.edit_text(f"Do Restart after you see this with /{BotCommands.RestartCommand}.")
-
-
-@run_async
-@is_owner
-def restart(update, context):
-    restart_message = sendMessage("Restarting, Please wait!", context.bot, update)
-    # Save restart message object in order to reply to it after restarting
-    with open(".restartmsg", "w") as f:
-        f.truncate(0)
-        f.write(f"{restart_message.chat.id}\n{restart_message.message_id}\n")
-    os.execl(executable, executable, "-m", "bot")
 botcmds = [
         (f'{CLONE_BOT}','Start Clone'),
         (f'{LOG_BOT}', 'Send log'),
@@ -233,31 +112,15 @@ botcmds = [
         (f'help','help')
     ]
 
+bot.set_my_commands(botcmds)
 
 def main():
-    LOGGER.info("Bot Started!")
-    if os.path.isfile(".restartmsg"):
-        with open(".restartmsg") as f:
-            chat_id, msg_id = map(int, f)
-        bot.edit_message_text("𝐁𝐨𝐭 𝐑𝐞𝐬𝐭𝐚𝐫𝐭𝐞𝐝 𝐒𝐮𝐜𝐜𝐞𝐬𝐬𝐟𝐮𝐥𝐥𝐲!", chat_id, msg_id)
-        os.remove(".restartmsg")
-    bot.set_my_commands(botcmds)
-    
-    dispatcher.bot.sendMessage(chat_id=OWNER_ID, text=f"<b>Bot Started Successfully!</b>", parse_mode=ParseMode.HTML)
-    clone_handler = MessageHandler(filters=Filters.regex(CLONE_REGEX), callback=cloneNode)
+    LOGGER.info("📶 Bot Started!")
+    clone_handler = CommandHandler(f'{CLONE_BOT}', cloneNode)
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', helper)
     log_handler = CommandHandler(f'{LOG_BOT}', sendLogs)
     delete_handler = CommandHandler(f'{DEL_BOT}', deletefile)
-    count_handler = CommandHandler('count', countNode)
-    shell_handler = CommandHandler(['shell', 'sh', 'tr', 'term', 'terminal'], shell)
-    GITPULL_HANDLER = CommandHandler('update', gitpull)
-    restart_handler = CommandHandler('restart', restart)
-    
-    dispatcher.add_handler(restart_handler)
-    dispatcher.add_handler(GITPULL_HANDLER)
-    dispatcher.add_handler(shell_handler)
-    dispatcher.add_handler(count_handler)
     dispatcher.add_handler(log_handler)
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(clone_handler)
